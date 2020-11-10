@@ -1,30 +1,29 @@
-# 1. Configure sms
-# 2. Sends sms every morning (twilio)
-# 3. Looks up weather
-# 4. Adds the waether uppdate to sms
+# Configure telebot
+# Sends sms every morning to telegram
+# Looks up weather
+# Adds the waether uppdate to sms
 
-import requests, json
-from twilio.rest import Client
-
-
-# Configures SMS, where to send
-
-account_sid = ['ACbc7f3e3e1959d94ae8f85077d5ced437']
-auth_token = ['3f26ec142b5bc4a7223634d9989f425d']
-client = Client(account_sid, auth_token)
-
-message = client.messages \
-                .create(
-                     body="helou there",
-                     from_='twilio number',
-                     to='My number'
-                 )
-
-print(message.sid)
+import requests
+import json
+import schedule
+import time
 
 
+# Configures telegrambot
 
-#Looks up weather  requests, json,
+import requests
+
+def telegram_bot_sendtext(bot_message):
+    
+    bot_token = '1499612660:AAF4wbH-ztZ17l9pZ8G4ytdAv61aHmvUSng'
+    bot_chatID = '790865520'
+    send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + bot_chatID + '&parse_mode=Markdown&text=' + bot_message
+
+    response = requests.get(send_text)
+
+    return response.json()    
+
+#Looks up weather from openweather
 
 api_key = "7159346aea3d43e2f5e93c740d810b82"
 base_url = "http://api.openweathermap.org/data/2.5/weather?"
@@ -44,16 +43,23 @@ if x["cod"] != "404":
 
     z = x["weather"]
     weather_description = z[0]["description"]
-    
-    
-    print(" Temperature = " + 
-                str(current_temperature) + " Astetta " +
-        "\n Currently feels like = " +
-                str(current_feels) + " Astetta " +
-        "\n wind speed = "  +
+
+
+# Send weather info to telegram
+
+def report():
+        telegram_bot_sendtext(" Temperature: " + 
+                str(current_temperature) + " Degrees " +
+        "\nCurrently feels like: " +
+                str(current_feels) + " Degrees" +
+        "\nwind speed: "  +
                 str(current_wind) + " m/s " +
-        "\n description = " +
+        "\ndescription: " +
                 str(weather_description))
 
-else:
-    print("Error")
+schedule.every().day.at("15:50").do(report)
+
+while True:
+        schedule.run_pending()
+        time.sleep(1)
+
